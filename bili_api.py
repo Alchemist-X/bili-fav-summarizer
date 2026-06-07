@@ -3,6 +3,11 @@ bili_api.py — Bilibili API client using stdlib only (urllib).
 
 Fetches favorite folders, video lists, and subtitles for a given user,
 using their SESSDATA cookie for authentication.
+
+Features:
+  - Automatic retry with exponential backoff on transient network errors
+  - Rate-limit politeness delay between requests
+  - CJK-safe URL handling
 """
 
 import json
@@ -27,7 +32,9 @@ BASE_HEADERS = {
 }
 
 API_BASE = "https://api.bilibili.com"
-REQUEST_DELAY = 0.5  # seconds between requests to avoid rate limiting
+REQUEST_DELAY = 0.6          # seconds between API calls (politeness)
+MAX_RETRIES = 3              # retry count for transient errors
+RETRY_BACKOFF = [2, 5, 10]  # wait seconds per retry attempt
 
 
 # ── HTTP helpers ───────────────────────────────────────────────────────────────
@@ -38,25 +45,41 @@ def _make_headers(sessdata: str) -> dict[str, str]:
     return {**BASE_HEADERS, "Cookie": f"SESSDATA={sessdata}"}
 
 
-def _get_json(url: str, headers: dict[str, str], timeout: int = 15) -> dict[str, Any]:
-    """Perform a GET request and return parsed JSON, with clear error messages."""
+def _get_json(
+    url: str,
+    headers: dict[str, str],
+    timeout: int = 15,
+    retries: int = MAX_RETRIES,
+) -> dict[str, Any]:
+    """
+    Perform a GET request and return parsed JSON.
+    Retries on network errors with exponential backoff.
+    """
     req = urllib.request.Request(url, headers=headers)
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            raw = resp.read()
-            return json.loads(raw)
-    except urllib.error.HTTPError as exc:
-        raise RuntimeError(
-            f"HTTP {exc.code} fetching {url}: {exc.reason}"
-        ) from exc
-    except urllib.error.URLError as exc:
-        raise RuntimeError(
-            f"Network error fetching {url}: {exc.reason}"
-        ) from exc
-    except json.JSONDecodeError as exc:
-        raise RuntimeError(
-            f"Invalid JSON from {url}: {exc}"
-        ) from exc
+    last_exc: Exception | None = None
+
+    for attempt in range(retries):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                raw = resp.read()
+                return json.loads(raw)
+        except urllib.error.HTTPError as exc:
+            # Retry on 429 (rate limit) or 5xx server errors
+            if exc.code == 429 or exc.code >= 500:
+                wait = RETRY_BACKOFF[min(attempt, len(RETRY_BACKOFF) - 1)]
+                time.sleep(wait)
+                last_exc = RuntimeError(f"HTTP {exc.code} fetching {url}: {exc.reason}")
+                continue
+            raise RuntimeError(f"HTTP {exc.code} fetching {url}: {exc.reason}") from exc
+        except urllib.error.URLError as exc:
+            wait = RETRY_BACKOFF[min(attempt, len(RETRY_BACKOFF) - 1)]
+            time.sleep(wait)
+            last_exc = RuntimeError(f"Network error fetching {url}: {exc.reason}")
+            continue
+        except json.JSONDecodeError as exc:
+            raise RuntimeError(f"Invalid JSON from {url}: {exc}") from exc
+
+    raise last_exc or RuntimeError(f"Request failed after {retries} retries: {url}")
 
 
 def _get_raw(url: str, timeout: int = 20) -> bytes:
@@ -165,9 +188,7 @@ def get_subtitle_urls(sessdata: str, bvid: str, cid: int) -> list[dict[str, Any]
     raw = _get_json(url, headers)
     data = _check_api(raw, f"get_subtitle_urls({bvid}, {cid})")
 
-    subtitle_info = (
-        data.get("subtitle") or {}
-    )
+    subtitle_info = data.get("subtitle") or {}
     return subtitle_info.get("subtitles") or []
 
 
