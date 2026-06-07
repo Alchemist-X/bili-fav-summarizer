@@ -1,0 +1,31 @@
+{
+  "font_size": 0.4,
+  "font_color": "#FFFFFF",
+  "background_alpha": 0.5,
+  "background_color": "#9C27B0",
+  "Stroke": "none",
+  "body": [
+    {"from": 0.0,  "to": 4.5,  "location": 2, "content": "大家好，今天我们来学习Python异步编程的核心概念。"},
+    {"from": 4.5,  "to": 9.0,  "location": 2, "content": "异步编程是现代Python开发中非常重要的一个技术。"},
+    {"from": 9.0,  "to": 14.0, "location": 2, "content": "它允许我们在等待I/O操作的时候执行其他任务。"},
+    {"from": 14.0, "to": 19.5, "location": 2, "content": "这样可以大幅提升程序的性能和响应速度。"},
+    {"from": 19.5, "to": 25.0, "location": 2, "content": "Python的asyncio库是实现异步编程的标准工具。"},
+    {"from": 25.0, "to": 30.5, "location": 2, "content": "async和await关键字是异步编程的核心语法。"},
+    {"from": 30.5, "to": 36.0, "location": 2, "content": "使用async def定义一个协程函数，这是异步函数的基础。"},
+    {"from": 36.0, "to": 42.0, "location": 2, "content": "await关键字用于等待一个异步操作完成，同时释放控制权。"},
+    {"from": 42.0, "to": 48.0, "location": 2, "content": "事件循环是asyncio的核心，它负责调度所有的协程任务。"},
+    {"from": 48.0, "to": 54.0, "location": 2, "content": "asyncio.run()函数是运行顶层协程的推荐方式。"},
+    {"from": 54.0, "to": 60.0, "location": 2, "content": "asyncio.gather()可以并发运行多个协程，极大提升效率。"},
+    {"from": 60.0, "to": 66.5, "location": 2, "content": "Task对象代表一个被调度执行的协程，可以取消或检查状态。"},
+    {"from": 66.5, "to": 72.0, "location": 2, "content": "异步上下文管理器用async with语法，用于管理异步资源。"},
+    {"from": 72.0, "to": 78.0, "location": 2, "content": "异步迭代器用async for语法，可以异步遍历数据流。"},
+    {"from": 78.0, "to": 84.0, "location": 2, "content": "asyncio.Queue是线程安全的异步队列，适合生产者消费者模式。"},
+    {"from": 84.0, "to": 90.5, "location": 2, "content": "在实际项目中，aiohttp库是异步HTTP请求的常用选择。"},
+    {"from": 90.5, "to": 97.0, "location": 2, "content": "异步数据库驱动如asyncpg让数据库操作也变得高效非阻塞。"},
+    {"from": 97.0, "to": 103.0,"location": 2, "content": "需要注意的是，CPU密集型任务不适合用asyncio，应使用多进程。"},
+    {"from": 103.0,"to": 109.0,"location": 2, "content": "调试异步代码可以开启asyncio的debug模式来追踪问题。"},
+    {"from": 109.0,"to": 115.0,"location": 2, "content": "总结：异步编程通过协程实现并发，非常适合I/O密集型应用。"},
+    {"from": 115.0,"to": 121.0,"location": 2, "content": "掌握asyncio能让你写出更高效、更现代的Python程序。"},
+    {"from": 121.0,"to": 127.0,"location": 2, "content": "希望今天的讲解对大家有所帮助，我们下期见！"}
+  ]
+}
